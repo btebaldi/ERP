@@ -1,3 +1,13 @@
+#' Autor: Bruno Tebaldi Barbosa
+#'
+#' Data: 2023-01-18
+#'
+#' Processo de calculo do Equity Risk Premium (ERP). Baseado no documento: 
+#' Antonio Zoratto Sanvicente (October 23, 2017) - ESTIMATIVAS DO EQUITY RISK PREMIUM PARA O MERCADO BRASILEIRO DE CAPITAIS
+#'
+#' Input: Planilha com dados do Economatica contendo: Last_Price, VPA, LPA e DPA
+#'
+#' Output: Arquivos txt
 
 # Setup -------------------------------------------------------------------
 rm(list = ls())
@@ -21,17 +31,16 @@ log_message <- function(msg){
 log_message("PROCESSO INICIADO")
 
 
-base_ERP_full <- read_excel("Database/base_ERP_economatica.xlsx", 
-                            range = cell_limits(ul = c(1,3), lr = c(NA, 11+2)),
+base_ERP_full <- read_excel("Database/Import_base_ERP_economatica.xlsx", 
+                            # range = cell_limits(ul = c(1,3), lr = c(NA, 11+2)),
                             na = "-")
 
 # column  name regularization
-colnames(base_ERP_full) <- c("Nome", "Classe", "Bolsa", "Tipo_de_Ativo", "Ativo",
-                             "Ticker", "DPA", "LPA", "VPA", "Fechamento", 
-                             "Setor")
+# colnames(base_ERP_full) <- c("Nome", "Classe", "Bolsa", "Tipo_de_Ativo", "Ativo",
+#                              "Ticker", "DPA", "LPA", "VPA", "Fechamento", 
+#                              "Setor")
 
-T10_Bond <- (3.8145)/100
-# T10_Bond <- (3.618486364)/100
+T10_Bond <- (3.5069)/100
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
@@ -55,6 +64,10 @@ Setor_labels <- c("Petroleo e Gas", "Agro e Pesca", "Energia Eletrica", "Financa
 
 base_ERP_full$Setor <- factor(x = base_ERP_full$Setor, levels = Setor_levels,
                               labels = Setor_labels)
+
+if(any(is.na(base_ERP_full$Setor))){
+  stop("ERRO: SETOR COMO NA!")
+}
 
 
 # Logic layer - Calculo de k por acao -------------------------------------
@@ -87,7 +100,6 @@ base_ERP <- base_ERP %>%
 
 base_ERP <- base_ERP %>% 
   mutate(DIV_1 = DIV_0 * (1+g),
-         Payout = DPA/LPA,
          k = (DIV_1/P_0) + g)
 
 # Logic layer - Filtro de empresas ----------------------------------------
@@ -191,6 +203,7 @@ log_message(sprintf("E_k: %f", E_k))
 
 ERP <- E_k - T10_Bond
 
+cat(sprintf("ERP: %f", ERP), "\n")
 log_message(sprintf("ERP: %f", ERP))
 
 log_message("PROCESSO FINALIZADO")
