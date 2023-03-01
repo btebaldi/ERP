@@ -40,7 +40,8 @@ base_ERP_full <- read_excel("Database/Import_base_ERP_economatica.xlsx",
 #                              "Ticker", "DPA", "LPA", "VPA", "Fechamento", 
 #                              "Setor")
 
-T10_Bond <- (3.5069)/100
+T10_Bond <- (3.92)/100
+ref <- "2023-02"
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
@@ -48,22 +49,32 @@ log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ti
 # Database Preparation ----------------------------------------------------
 
 
-Setor_levels <- c("Petróleo e Gas", "Agro e Pesca", "Energia Elétrica", "Finanças e Seguros", 
-                  "Siderur & Metalur", "Máquinas Indust", "Outros", "Transporte Serviç", 
-                  "Comércio", "Textil", "Construção", "Alimentos e Beb", "Telecomunicações", 
-                  "Mineração", "Software e Dados", "Veiculos e peças", "Química", 
-                  "Minerais não Met", "Eletroeletrônicos", "Papel e Celulose", "Fundos")
+Setor_levels_labels <- c("Petróleo e Gas"="Petroleo e Gas",
+                         "Agro e Pesca"="Agro e Pesca",
+                         "Energia Elétrica"="Energia Eletrica",
+                         "Finanças e Seguros"="Financas e Seguros", 
+                         "Siderur & Metalur"="Siderurgia e Metalurgia",
+                         "Máquinas Indust"="Maquinas Industriais",
+                         "Outros"="Outros",
+                         "Transporte Serviç"="Transporte Servico", 
+                         "Comércio"="Comercio",
+                         "Textil"="Textil",
+                         "Construção"="Construcao",
+                         "Alimentos e Beb"="Alimentos e Bebidas",
+                         "Telecomunicações"="Telecomunicacoes",
+                         "Mineração"="Mineracao",
+                         "Software e Dados"="Software e Dados",
+                         "Veiculos e peças"="Veiculos e pecas",
+                         "Química"="Quimica",
+                         "Minerais não Met"="Minerais nao Metais",
+                         "Eletroeletrônicos"="Eletroeletronicos",
+                         "Papel e Celulose"="Papel e Celulose",
+                         "Fundos"="Fundos")
 
 
-Setor_labels <- c("Petroleo e Gas", "Agro e Pesca", "Energia Eletrica", "Financas e Seguros", 
-                  "Siderurgia e Metalurgia", "Maquinas Industriais", "Outros", "Transporte Servico", 
-                  "Comercio", "Textil", "Construcao", "Alimentos e Bebidas", "Telecomunicacoes", 
-                  "Mineracao", "Software e Dados", "Veiculos e pecas", "Quimica", 
-                  "Minerais nao Metais", "Eletroeletronicos", "Papel e Celulose", "Fundos")
-
-
-base_ERP_full$Setor <- factor(x = base_ERP_full$Setor, levels = Setor_levels,
-                              labels = Setor_labels)
+base_ERP_full$Setor <- factor(x = base_ERP_full$Setor,
+                              levels = names(Setor_levels_labels),
+                              labels = Setor_levels_labels)
 
 if(any(is.na(base_ERP_full$Setor))){
   stop("ERRO: SETOR COMO NA!")
@@ -105,7 +116,11 @@ base_ERP <- base_ERP %>%
 # Logic layer - Filtro de empresas ----------------------------------------
 
 
-# Exclui ações dos setores "Financas e Seguros", "Fundos"
+# I. Não são utilizadas ações de instituições financeiras (setor Finanças, na
+# base da Economática), porque suas estruturas de capital têm características
+# bem distintas das estruturas de passivos de empresas industriais, comerciais e
+# de prestação de serviços. Ou sejam, são altamente alavancadas por força da
+# natureza de sua operação.
 Exclusao <- base_ERP %>%
   mutate(row_id = row_number()) %>% 
   filter(Setor %in% c("Financas e Seguros", "Fundos")) %>% 
@@ -116,6 +131,18 @@ if(length(Exclusao) > 0){
   base_ERP[Exclusao, ]
   base_ERP <- base_ERP[-Exclusao, ]
 }
+
+
+# II. São usados preços de apenas uma das classes de ações de cada empresa
+# incluída na amostra, para se evitar que haja dupla contagem.
+
+# Processo já executado 
+
+# base_ERP <- base_ERP %>%
+#   group_by(Nome) %>% 
+#   mutate(K2 = Volume == max(Volume)) %>%
+#   # select(ID, Nome, Ticker, keep, K2) %>% 
+#   filter(K2 == TRUE)
 
 
 # 1. São excluídas as ações que não apresentaram cotação de fechamento no mês.
@@ -147,7 +174,8 @@ if(length(Exclusao) > 0){
   base_ERP <- base_ERP[-Exclusao, ]
 }
 
-# É possivel excluir o VPA negativo, porem o mesmo nao esta documentado no processo. Por essa razao o processo abaixo esta desligado.
+# É possivel excluir o VPA negativo, porem o mesmo nao esta documentado no
+# processo. Por essa razao o processo abaixo esta desligado.
 
 # Exclui ações que tem VPA negativo
 # Exclusao <- base_ERP %>%
@@ -185,6 +213,7 @@ if(length(Exclusao) > 0){
   base_ERP <- base_ERP[-Exclusao, ]
 }
 
+
 summary(base_ERP)
 
 
@@ -211,8 +240,35 @@ log_message("PROCESSO FINALIZADO")
 
 # Escreve log de saida ----------------------------------------------------
 
-file_name <- sprintf("%s ERP Log.txt", Sys.Date())
+file_name <- stringr::str_replace_all(string = sprintf("%s ERP Log.txt", Sys.time()),
+                                  pattern = ":",
+                                  replacement = "_")
 fileConn <- file(file_name, encoding = "UTF-8")
 writeLines(str_log_message, fileConn)
 close(fileConn)
+
+
+# Copia arquivos em diretorio Historico -----------------------------------
+
+# diretorio para guarda dos aqruivos
+dir <- file.path(".", "Historico", sprintf("ref %s", ref))
+
+#  cria o diretorio
+if(!dir.exists(dir)){ dir.create(dir) }
+
+# Copia a base de dados
+detination_file <- file.path(dir, sprintf("Import_base_ERP_economatica(%s).xlsx", Sys.time()))
+detination_file <- stringr::str_replace_all(string = detination_file,
+                         pattern = ":",
+                         replacement = "_")
+
+file.copy(from = "Database/Import_base_ERP_economatica.xlsx",
+          to = detination_file)
+
+# Copia log do processo
+detination_file <- file.path(dir, sprintf("Import_base_ERP_economatica(%s).xlsx", Sys.time()))
+detination_file <- stringr::str_replace_all(string = detination_file,
+                                            pattern = ":",
+                                            replacement = "_")
+file.copy(from = file_name, to = file.path(dir, file_name))
 
