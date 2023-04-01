@@ -40,8 +40,8 @@ base_ERP_full <- read_excel("Database/Import_base_ERP_economatica.xlsx",
 #                              "Ticker", "DPA", "LPA", "VPA", "Fechamento", 
 #                              "Setor")
 
-T10_Bond <- (3.92)/100
-ref <- "2023-02"
+T10_Bond <- (3.49)/100
+ref <- "2023-03"
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
@@ -214,7 +214,7 @@ if(length(Exclusao) > 0){
 }
 
 
-summary(base_ERP)
+print(summary(base_ERP))
 
 
 # Logic layer - Media aparada ---------------------------------------------
