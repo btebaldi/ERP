@@ -31,7 +31,7 @@ log_message <- function(msg){
 log_message("PROCESSO INICIADO")
 
 
-base_ERP_full <- read_excel("Database/Import_base_ERP_economatica.xlsx", 
+base_ERP_full <- read_excel("Database/Import_base_ERP_economatica.xlsx",
                             # range = cell_limits(ul = c(1,3), lr = c(NA, 11+2)),
                             na = "-")
 
@@ -214,7 +214,7 @@ if(length(Exclusao) > 0){
 }
 
 
-print(summary(base_ERP))
+summary_base_ERP <- summary(base_ERP)
 
 
 # Logic layer - Media aparada ---------------------------------------------
@@ -240,12 +240,22 @@ log_message("PROCESSO FINALIZADO")
 
 # Escreve log de saida ----------------------------------------------------
 
-file_name <- stringr::str_replace_all(string = sprintf("%s ERP Log.txt", Sys.time()),
+# Escrita do log do processo
+log_file_name <- stringr::str_replace_all(string = sprintf("%s ERP Log.txt", Sys.time()),
                                   pattern = ":",
                                   replacement = "_")
-fileConn <- file(file_name, encoding = "UTF-8")
+fileConn <- file(log_file_name, encoding = "UTF-8")
 writeLines(str_log_message, fileConn)
 close(fileConn)
+
+
+# Escrita da tabela de variaveis descritivas
+summary_file_name <- stringr::str_replace_all(string = sprintf("%s summary base_ERP.txt", Sys.time()),
+                                              pattern = ":",
+                                              replacement = "_")
+
+write.table(x = summary_base_ERP, file = summary_file_name )
+
 
 
 # Copia arquivos em diretorio Historico -----------------------------------
@@ -253,7 +263,7 @@ close(fileConn)
 # diretorio para guarda dos aqruivos
 dir <- file.path(".", "Historico", sprintf("ref %s", ref))
 
-#  cria o diretorio
+# Cria o diretorio
 if(!dir.exists(dir)){ dir.create(dir) }
 
 # Copia a base de dados
@@ -266,9 +276,10 @@ file.copy(from = "Database/Import_base_ERP_economatica.xlsx",
           to = detination_file)
 
 # Copia log do processo
-detination_file <- file.path(dir, sprintf("Import_base_ERP_economatica(%s).xlsx", Sys.time()))
-detination_file <- stringr::str_replace_all(string = detination_file,
-                                            pattern = ":",
-                                            replacement = "_")
-file.copy(from = file_name, to = file.path(dir, file_name))
+file.copy(from = log_file_name, to = file.path(dir, log_file_name))
+
+
+# Copia tabela de variaveis descritivas
+file.copy(from = summary_file_name, to = file.path(dir, summary_file_name))
+
 
