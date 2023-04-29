@@ -39,10 +39,10 @@ log_message <- function(msg){
 log_message("PROCESSO INICIADO")
 
 
-base_ERP_full <- read_excel("Database/Teste Pasta1.xlsx", 
+base_ERP_full <- read_excel("Database/Teste Planilha com add In Economatica.xlsx", 
                             range = cell_limits(ul = c(2,1), lr = c(NA, 11)),
                             na = "-",
-                            sheet = "Planilha1")
+                            sheet = "Planilha2")
 
 # column  name regularization
 colnames(base_ERP_full) <- c("id", "codigo", "Nome", "Classe", 
@@ -50,8 +50,8 @@ colnames(base_ERP_full) <- c("id", "codigo", "Nome", "Classe",
                              "Fechamento", "Volume")
 
 
-T10_Bond <- (3.49)/100
-data_ref <- "2023-03-01"
+T10_Bond <- (3.45)/100
+data_ref <- "2023-04-01"
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
