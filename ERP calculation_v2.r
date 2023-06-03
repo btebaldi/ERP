@@ -44,14 +44,32 @@ base_ERP_full <- read_excel("Database/Teste Planilha com add In Economatica.xlsx
                             na = "-",
                             sheet = "Planilha2")
 
+
 # column  name regularization
 colnames(base_ERP_full) <- c("id", "codigo", "Nome", "Classe", 
                              "Ticker", "LPA", "DPA", "VPA", "Setor", 
                              "Fechamento", "Volume")
 
 
-T10_Bond <- (3.45)/100
-data_ref <- "2023-04-01"
+base_ERP_full <- read_excel("Database/economatica.xlsx", 
+                            range = cell_limits(ul = c(4,1), lr = c(NA, 12)),
+                            na = "-")
+
+colnames(base_ERP_full) <- c("id", "Nome", "Classe", 
+                             "Bolsa",
+                             "Tipo",
+                             "Ativo",
+                             "Ticker",
+                             "VPA",
+                             "DPA",
+                             "LPA", 
+                             "Fechamento", 
+                             "Setor")
+
+
+
+T10_Bond <- (3.69)/100
+data_ref <- "2023-05-01"
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
@@ -59,49 +77,49 @@ log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ti
 # Database Preparation ----------------------------------------------------
 
 
-# Setor_levels_labels <- c("Petróleo e Gas"="Petroleo e Gas",
-#                          "Agro e Pesca"="Agro e Pesca",
-#                          "Energia Elétrica"="Energia Eletrica",
-#                          "Finanças e Seguros"="Financas e Seguros", 
-#                          "Siderur & Metalur"="Siderurgia e Metalurgia",
-#                          "Máquinas Indust"="Maquinas Industriais",
-#                          "Outros"="Outros",
-#                          "Transporte Serviç"="Transporte Servico", 
-#                          "Comércio"="Comercio",
-#                          "Textil"="Textil",
-#                          "Construção"="Construcao",
-#                          "Alimentos e Beb"="Alimentos e Bebidas",
-#                          "Telecomunicações"="Telecomunicacoes",
-#                          "Mineração"="Mineracao",
-#                          "Software e Dados"="Software e Dados",
-#                          "Veiculos e peças"="Veiculos e pecas",
-#                          "Química"="Quimica",
-#                          "Minerais não Met"="Minerais nao Metais",
-#                          "Eletroeletrônicos"="Eletroeletronicos",
-#                          "Papel e Celulose"="Papel e Celulose",
-#                          "Fundos"="Fundos")
+Setor_levels_labels <- c("Petróleo e Gas"="Petroleo e Gas",
+                         "Agro e Pesca"="Agro e Pesca",
+                         "Energia Elétrica"="Energia Eletrica",
+                         "Finanças e Seguros"="Financas e Seguros",
+                         "Siderur & Metalur"="Siderurgia e Metalurgia",
+                         "Máquinas Indust"="Maquinas Industriais",
+                         "Outros"="Outros",
+                         "Transporte Serviç"="Transporte Servico",
+                         "Comércio"="Comercio",
+                         "Textil"="Textil",
+                         "Construção"="Construcao",
+                         "Alimentos e Beb"="Alimentos e Bebidas",
+                         "Telecomunicações"="Telecomunicacoes",
+                         "Mineração"="Mineracao",
+                         "Software e Dados"="Software e Dados",
+                         "Veiculos e peças"="Veiculos e pecas",
+                         "Química"="Quimica",
+                         "Minerais não Met"="Minerais nao Metais",
+                         "Eletroeletrônicos"="Eletroeletronicos",
+                         "Papel e Celulose"="Papel e Celulose",
+                         "Fundos"="Fundos")
 
-Setor_levels_labels <- c("Oil & Gas"              = "Petroleo e Gas",
-                          "Agri & Fisheries"      = "Agro e Pesca",
-                          "Electric Power"        = "Energia Eletrica",
-                          "Finance and Insurance" = "Financas e Seguros", 
-                          "Basic & Fab Metal"     = "Siderurgia e Metalurgia",
-                          "Industrial Machin"     = "Maquinas Industriais",
-                          "Other"                 = "Outros",
-                          "Transportat Serv"      = "Transporte Servico", 
-                          "Trade"                 = "Comercio",
-                          "Textile"               = "Textil",
-                          "Construction"          = "Construcao",
-                          "Food & Beverage"       = "Alimentos e Bebidas",
-                          "Telecommunication"     = "Telecomunicacoes",
-                          "Mining"                = "Mineracao",
-                          "Software & Data"       = "Software e Dados",
-                          "Vehicle & Parts"       = "Veiculos e pecas",
-                          "Chemical"              = "Quimica",
-                          "Nonmetallic Min"       = "Minerais nao Metais",
-                          "Electric Electron"     = "Eletroeletronicos",
-                          "Pulp & Paper"          = "Papel e Celulose",
-                          "Funds"                 = "Fundos")
+# Setor_levels_labels <- c("Oil & Gas"              = "Petroleo e Gas",
+#                           "Agri & Fisheries"      = "Agro e Pesca",
+#                           "Electric Power"        = "Energia Eletrica",
+#                           "Finance and Insurance" = "Financas e Seguros", 
+#                           "Basic & Fab Metal"     = "Siderurgia e Metalurgia",
+#                           "Industrial Machin"     = "Maquinas Industriais",
+#                           "Other"                 = "Outros",
+#                           "Transportat Serv"      = "Transporte Servico", 
+#                           "Trade"                 = "Comercio",
+#                           "Textile"               = "Textil",
+#                           "Construction"          = "Construcao",
+#                           "Food & Beverage"       = "Alimentos e Bebidas",
+#                           "Telecommunication"     = "Telecomunicacoes",
+#                           "Mining"                = "Mineracao",
+#                           "Software & Data"       = "Software e Dados",
+#                           "Vehicle & Parts"       = "Veiculos e pecas",
+#                           "Chemical"              = "Quimica",
+#                           "Nonmetallic Min"       = "Minerais nao Metais",
+#                           "Electric Electron"     = "Eletroeletronicos",
+#                           "Pulp & Paper"          = "Papel e Celulose",
+#                           "Funds"                 = "Fundos")
 
 base_ERP_full$Setor <- factor(x = base_ERP_full$Setor,
                               levels = names(Setor_levels_labels),
