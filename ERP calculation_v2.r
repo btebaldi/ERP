@@ -39,37 +39,24 @@ log_message <- function(msg){
 log_message("PROCESSO INICIADO")
 
 
-base_ERP_full <- read_excel("Database/Teste Planilha com add In Economatica.xlsx", 
-                            range = cell_limits(ul = c(2,1), lr = c(NA, 11)),
+base_ERP_full <- read_excel("Database/Import_base_ERP_economatica_202306.xlsx", 
+                            range = cell_limits(ul = c(1,1), lr = c(NA, 12)),
                             na = "-",
-                            sheet = "Planilha2")
-
+                            sheet = "Sheet1")
 
 # column  name regularization
-colnames(base_ERP_full) <- c("id", "codigo", "Nome", "Classe", 
-                             "Ticker", "LPA", "DPA", "VPA", "Setor", 
-                             "Fechamento", "Volume")
+# colnames(base_ERP_full) <- c("id", "codigo", "Nome", "Classe", 
+#                              "Ticker", "LPA", "DPA", "VPA", "Setor", 
+#                              "Fechamento", "Volume")
 
-
-base_ERP_full <- read_excel("Database/economatica.xlsx", 
-                            range = cell_limits(ul = c(4,1), lr = c(NA, 12)),
-                            na = "-")
-
-colnames(base_ERP_full) <- c("id", "Nome", "Classe", 
-                             "Bolsa",
-                             "Tipo",
-                             "Ativo",
-                             "Ticker",
-                             "VPA",
-                             "DPA",
-                             "LPA", 
-                             "Fechamento", 
-                             "Setor")
+colnames(base_ERP_full) <- c("id", "Nome", "Classe", "Bolsa", "Tipo", 
+                             "Ativo", 
+                             "Ticker", "DPA", "LPA", "VPA", "Fechamento", "Setor")
 
 
 
-T10_Bond <- (3.69)/100
-data_ref <- "2023-05-01"
+T10_Bond <- (3.8200)/100
+data_ref <- "2023-06-01"
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
@@ -97,7 +84,29 @@ Setor_levels_labels <- c("Petróleo e Gas"="Petroleo e Gas",
                          "Minerais não Met"="Minerais nao Metais",
                          "Eletroeletrônicos"="Eletroeletronicos",
                          "Papel e Celulose"="Papel e Celulose",
-                         "Fundos"="Fundos")
+                         "Fundos"="Fundos",
+                         
+                         "Petroleo e Gas"="Petroleo e Gas",
+                         "Agro e Pesca" = "Agro e Pesca",
+                         "Energia Eletrica" = "Energia Eletrica",
+                         "Financas e Seguros" = "Financas e Seguros",
+                         "Siderurgia e Metalurgia" = "Siderurgia e Metalurgia",
+                         "Maquinas Industriais" = "Maquinas Industriais",
+                         "Outros" = "Outros",
+                         "Transporte Servico" = "Transporte Servico",
+                         "Comercio" = "Comercio",
+                         "Textil" = "Textil",
+                         "Construcao" = "Construcao",
+                         "Alimentos e Bebidas" = "Alimentos e Bebidas",
+                         "Telecomunicacoes" = "Telecomunicacoes",
+                         "Mineracao" = "Mineracao",
+                         "Software e Dados" = "Software e Dados",
+                         "Veiculos e pecas" = "Veiculos e pecas",
+                         "Quimica" = "Quimica",
+                         "Minerais nao Metais" = "Minerais nao Metais",
+                         "Eletroeletronicos" = "Eletroeletronicos",
+                         "Papel e Celulose" = "Papel e Celulose",
+                         "Fundos" = "Fundos")
 
 # Setor_levels_labels <- c("Oil & Gas"              = "Petroleo e Gas",
 #                           "Agri & Fisheries"      = "Agro e Pesca",
@@ -126,6 +135,7 @@ base_ERP_full$Setor <- factor(x = base_ERP_full$Setor,
                               labels = Setor_levels_labels)
 
 if(any(is.na(base_ERP_full$Setor))){
+  print(base_ERP_full[is.na(base_ERP_full$Setor), ])
   stop("ERRO: SETOR COMO 'NA'!")
 }
 
@@ -184,18 +194,18 @@ if(length(Exclusao) > 0){
 # II. São usados preços de apenas uma das classes de ações de cada empresa
 # incluída na amostra, para se evitar que haja dupla contagem.
 
-Exclusao <- base_ERP %>%
-  mutate(row_id = row_number()) %>%
-  group_by(Nome) %>% 
-  mutate(K2 = Volume == max(Volume)) %>%
-  filter(K2 == FALSE) %>% 
-  pull(row_id)
+# Exclusao <- base_ERP %>%
+#   mutate(row_id = row_number()) %>%
+#   group_by(Nome) %>% 
+#   mutate(K2 = Volume == max(Volume)) %>%
+#   filter(K2 == FALSE) %>% 
+#   pull(row_id)
 
-if(length(Exclusao) > 0){
-  log_message(sprintf("Exclusao de ativos da mesma empresa: %s", paste(base_ERP$Ticker[Exclusao], collapse = ", ")))
-  base_ERP[Exclusao, ]
-  base_ERP <- base_ERP[-Exclusao, ]
-} 
+# if(length(Exclusao) > 0){
+#   log_message(sprintf("Exclusao de ativos da mesma empresa: %s", paste(base_ERP$Ticker[Exclusao], collapse = ", ")))
+#   base_ERP[Exclusao, ]
+#   base_ERP <- base_ERP[-Exclusao, ]
+# } 
 
 # 1. São excluídas as ações que não apresentaram cotação de fechamento no mês.
 Exclusao <- base_ERP %>%
