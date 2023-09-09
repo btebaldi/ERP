@@ -54,8 +54,8 @@ colnames(base_ERP_full) <- c("id", "Nome", "Classe", "Bolsa", "Tipo",
 
 base_ERP_full <- base_ERP_full %>% filter(!is.na(Ticker))
 
-T10_Bond <- (3.9600)/100
-data_ref <- "2023-07-01"
+T10_Bond <- (4.09)/100
+data_ref <- "2023-08-01"
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
@@ -347,3 +347,4 @@ write.table(x = summary(base_ERP), file = file.path(dir, summary_file_name) )
 
 # Salvando dados na planilha do ERP ---------------------------------------
 AtualizarSerieERP(data = as.Date(data_ref), ERP = ERP)
+
