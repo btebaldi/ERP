@@ -39,24 +39,23 @@ log_message <- function(msg){
 log_message("PROCESSO INICIADO")
 
 
-base_ERP_full <- read_excel("Database/Import_base_ERP_economatica_202306.xlsx", 
-                            range = cell_limits(ul = c(1,1), lr = c(NA, 12)),
+base_ERP_full <- read_excel("Database/Import_base_ERP_economatica.xlsx", 
+                            range = cell_limits(ul = c(1,1), lr = c(NA, 13)),
                             na = "-",
                             sheet = "Sheet1")
 
-# column  name regularization
-# colnames(base_ERP_full) <- c("id", "codigo", "Nome", "Classe", 
-#                              "Ticker", "LPA", "DPA", "VPA", "Setor", 
-#                              "Fechamento", "Volume")
 
+
+# column  name regularization
 colnames(base_ERP_full) <- c("id", "Nome", "Classe", "Bolsa", "Tipo", 
                              "Ativo", 
-                             "Ticker", "DPA", "LPA", "VPA", "Fechamento", "Setor")
+                             "Ticker", "DPA", "LPA", "VPA", "Fechamento",
+                             "Setor", "Volume")
 
+base_ERP_full <- base_ERP_full %>% filter(!is.na(Ticker))
 
-
-T10_Bond <- (3.8200)/100
-data_ref <- "2023-06-01"
+T10_Bond <- (3.9600)/100
+data_ref <- "2023-07-01"
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
@@ -194,18 +193,18 @@ if(length(Exclusao) > 0){
 # II. São usados preços de apenas uma das classes de ações de cada empresa
 # incluída na amostra, para se evitar que haja dupla contagem.
 
-# Exclusao <- base_ERP %>%
-#   mutate(row_id = row_number()) %>%
-#   group_by(Nome) %>% 
-#   mutate(K2 = Volume == max(Volume)) %>%
-#   filter(K2 == FALSE) %>% 
-#   pull(row_id)
+Exclusao <- base_ERP %>%
+  mutate(row_id = row_number()) %>%
+  group_by(Nome) %>%
+  mutate(K2 = Volume == max(Volume)) %>%
+  filter(K2 == FALSE) %>%
+  pull(row_id)
 
-# if(length(Exclusao) > 0){
-#   log_message(sprintf("Exclusao de ativos da mesma empresa: %s", paste(base_ERP$Ticker[Exclusao], collapse = ", ")))
-#   base_ERP[Exclusao, ]
-#   base_ERP <- base_ERP[-Exclusao, ]
-# } 
+if(length(Exclusao) > 0){
+  log_message(sprintf("Exclusao de ativos da mesma empresa: %s", paste(base_ERP$Ticker[Exclusao], collapse = ", ")))
+  base_ERP[Exclusao, ]
+  base_ERP <- base_ERP[-Exclusao, ]
+}
 
 # 1. São excluídas as ações que não apresentaram cotação de fechamento no mês.
 Exclusao <- base_ERP %>%
@@ -285,6 +284,14 @@ if(length(Exclusao) > 0){
   log_message(sprintf("Exclusao de emrpesas com DPA ou LPA ou VPA ausentes: %s", paste(base_ERP$Ticker[Exclusao], collapse = ", ")))
   base_ERP[Exclusao, ]
   base_ERP <- base_ERP[-Exclusao, ]
+}
+
+# Security check ----------------------------------------------------------
+
+checkDuplicatas <- base_ERP %>% group_by(Nome) %>% summarise(n = n()) %>% filter(n > 1) %>% nrow()
+
+if(checkDuplicatas != 0){
+  stop("ERRO: ACOES DUPLICADAS!")
 }
 
 summary_base_ERP <- summary(base_ERP)
