@@ -54,8 +54,14 @@ colnames(base_ERP_full) <- c("id", "Nome", "Classe", "Bolsa", "Tipo",
 
 base_ERP_full <- base_ERP_full %>% filter(!is.na(Ticker))
 
-T10_Bond <- (4.09)/100
-data_ref <- "2023-08-01"
+# T10_Bond <- (4.09)/100
+# data_ref <- "2023-08-01"
+
+T10_Bond <- 4.5490/100
+data_ref <- "2023-09-01"
+
+# T10_Bond <- 4.8930/100
+# data_ref <- "2023-10-01"
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
@@ -197,7 +203,7 @@ Exclusao <- base_ERP %>%
   mutate(row_id = row_number()) %>%
   group_by(Nome) %>%
   mutate(K2 = Volume == max(Volume)) %>%
-  filter(K2 == FALSE) %>%
+  filter(K2 == FALSE | Volume == 0) %>%
   pull(row_id)
 
 if(length(Exclusao) > 0){
