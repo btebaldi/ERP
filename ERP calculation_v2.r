@@ -54,14 +54,9 @@ colnames(base_ERP_full) <- c("id", "Nome", "Classe", "Bolsa", "Tipo",
 
 base_ERP_full <- base_ERP_full %>% filter(!is.na(Ticker))
 
-# T10_Bond <- (4.09)/100
-# data_ref <- "2023-08-01"
-
-T10_Bond <- 4.35/100
-data_ref <- "2023-11-01"
-
-# T10_Bond <- 4.8930/100
-# data_ref <- "2023-10-01"
+# T10_Bond <- 4.35/100
+T10_Bond <- 3.97/100
+data_ref <- "2024-01-01"
 
 log_message(sprintf("TBond: %f", T10_Bond))
 log_message(sprintf("Lista de empresas consideradas: %s", paste(base_ERP_full$Ticker, collapse = ", ")))
