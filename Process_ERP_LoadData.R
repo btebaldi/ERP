@@ -37,7 +37,8 @@ Tbond <- read_excel("Database/Add In Economatica.xlsx",
 
 # Filtragem e preparacao inicial ------------------------------------------
 
-
+# Can be downloaded from
+# https://finance.yahoo.com/quote/%5ETNX/history/?period1=1570976431&period2=1728824359
 T10_Bond <- Tbond %>% 
   mutate(date = as.Date(date), yearMonth = floor_date(date, "month"), TBond2 = zoo::na.locf(TBond)) %>% 
   group_by(yearMonth) %>% 
