@@ -42,6 +42,7 @@ source(file = "./fct_ERP_Padronization.R")
 log_message("PROCESSO INICIADO")
 
 source(file = "./Process_ERP_LoadData.R")
+# source(file = "./Process_ERP_LoadData(historical).R")
 
 # Filtragem e preparacao inicial ------------------------------------------
 
