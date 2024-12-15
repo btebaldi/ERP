@@ -2,7 +2,7 @@
 
 # Data load ---------------------------------------------------------------
 
-print("Loading data")
+message("Loading data")
 
 file_to_load <- file.path("./Database/Add In Economatica.xlsx")
 
@@ -13,6 +13,7 @@ dataRef <- read_excel(file_to_load,
                       sheet = "Acoes Bovespa")
 
 data_ref <- lubridate::floor_date(dataRef$dateRef, "month")
+message(sprintf("data_ref: %s", data_ref))
 
 
 base_ERP_full <- read_excel("Database/Add In Economatica.xlsx",
@@ -45,6 +46,7 @@ T10_Bond <- Tbond %>%
   filter(date == max(date)) %>%
   filter(yearMonth == as.Date(data_ref)) %>% pull(TBond2)/100
 
+message(sprintf("T10_Bond: %s", T10_Bond))
 
 base_ERP_full <- base_ERP_full %>% filter(!is.na(Ticker))
 

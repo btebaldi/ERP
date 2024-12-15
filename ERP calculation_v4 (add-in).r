@@ -46,7 +46,6 @@ source(file = "./Process_ERP_LoadData.R")
 
 # Filtragem e preparacao inicial ------------------------------------------
 
-data_ref
 log_message(sprintf("data de referencia: %s", data_ref))
 
 base_ERP_full <- base_ERP_full %>% filter(!is.na(Ticker))
